@@ -127,5 +127,5 @@ def gen_all(dir_path):
     all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
     for f in all_files:
         p = os.path.join(dir_path, f)
-        all_configurations(p, "../Benchmark")
+        all_configurations(p, "./Benchmark")
 
