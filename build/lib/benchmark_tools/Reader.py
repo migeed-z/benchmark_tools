@@ -129,3 +129,5 @@ def gen_all(dir_path):
         p = os.path.join(dir_path, f)
         all_configurations(p, "../Benchmark")
 
+if __name__ == "__main__":
+    gen_all(sys.argv[1])
