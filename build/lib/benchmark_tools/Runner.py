@@ -21,6 +21,7 @@ def run_all(benchmark, test, output):
 
     all_files = [glob.glob('%s/*' % d) for d in directories]
     lengths = [len(files) for files in all_files]
+
     print("got names = %s, got lengths = %s" % (names, lengths))
     with open(output, 'w') as out:
         print("Running benchmarks")
@@ -62,9 +63,4 @@ def run_1(test):
 def run(test):
     return float(str(subprocess.check_output('retic %s/main.py' % test, shell=True),
                      encoding="utf-8"))
-
-
-run_all('../../take5',
-        '../../take5/Test',
-        '../../take5/output.py')
 

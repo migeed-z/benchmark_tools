@@ -1,0 +1,3 @@
+[console_scripts]
+zrun = benchmark_tools.zrun:main
+
