@@ -125,6 +125,7 @@ def gen_all(dir_path):
     :return: None
     """
     all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
         all_configurations(p, "./Benchmark")
