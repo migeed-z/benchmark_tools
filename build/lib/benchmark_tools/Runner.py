@@ -5,7 +5,7 @@ from shutil import copyfile
 
 import itertools
 from math import log2
-from other.Reader import get_name
+from benchmark_tools.Reader import get_name
 
 
 def run_all(benchmark, test, output):
@@ -16,6 +16,8 @@ def run_all(benchmark, test, output):
     :return: None
     """
     print("hello from 'run_all'")
+    if not os.path.exists(test):
+      os.mkdir(test)
     directories = glob.glob('%s/*' % benchmark)
     names = [get_name(d) for d in directories]
 
@@ -61,6 +63,6 @@ def run_1(test):
     return sum(vals) / len(vals)
 
 def run(test):
-    return float(str(subprocess.check_output('retic %s/main.py' % test, shell=True),
-                     encoding="utf-8"))
-
+    output = str(subprocess.check_output('retic %s/main.py' % test, shell=True)).split("\\n")
+    run_time = output[-2]
+    return float(run_time)
