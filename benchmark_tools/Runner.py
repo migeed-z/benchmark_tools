@@ -107,7 +107,6 @@ def run_1(test):
     return sum(vals) / len(vals)
 
 def run(test):
-    output = str(subprocess.check_output('retic %s/main.py' % test, shell=True))
-    print("hey output is '''%s'''" % output)
+    output = str(subprocess.check_output('retic %s/main.py' % test, shell=True), encoding="utf-8")
     run_time = output.split("\n")[-2]
     return float(run_time)
