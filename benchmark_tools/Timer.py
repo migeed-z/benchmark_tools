@@ -35,5 +35,5 @@ class Timer:
     d1 = self.monotonic_end    - self.monotonic_start
     d2 = self.perf_counter_end - self.perf_counter_start
     d3 = self.process_time_end - self.process_time_start
-    print(d3)
+    print("TIME %s TIME" % d3)
     # print("monotonic: %s  perf. counter: %s  process time: %s" % (d1, d2, d3))

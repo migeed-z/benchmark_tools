@@ -117,7 +117,7 @@ def branch(prefixes, suffixes):
     return res
 
 
-def gen_all(dir_path):
+def gen_all(dir_path, target):
     """
     Generates permutation on all files in
     dir_path
@@ -128,5 +128,5 @@ def gen_all(dir_path):
     print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
-        all_configurations(p, "./Benchmark")
+        all_configurations(p, target)
 
