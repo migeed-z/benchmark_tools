@@ -1,7 +1,7 @@
 import os
 import glob
 import subprocess
-from shutil import copyfile
+from shutil import copyfile, copytree
 
 import itertools
 from multiprocessing import Process
@@ -50,9 +50,7 @@ def run_all(benchmark, test_root, output):
         hi = 1+offset+chunk_size
         test = os.path.join(test_root, str(i))
         if not os.path.exists(test):
-          os.mkdir(test)
-          for bf in glob.glob("both/*"):
-            copyfile(bf, "%s/%s" % (test, bf.rsplit("/", 1)[-1]))
+          copytree("both", test)
         p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o))
         procs.append(p)
         outs.append(o)
@@ -108,6 +106,5 @@ def run_1(test):
 
 def run(test):
     output = str(subprocess.check_output('retic %s/main.py' % test, shell=True), encoding="utf-8")
-    #print("hey output is '''%s'''" % output)
     run_time = output.split("\n")[-2]
     return float(run_time)
