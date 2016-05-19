@@ -8,6 +8,7 @@ from multiprocessing import Process
 from math import log2
 from benchmark_tools.Reader import get_name
 
+BOTH = "both"
 jobs = 4
 
 def product(xs):
@@ -49,8 +50,10 @@ def run_all(benchmark, test_root, output):
         lo = offset
         hi = 1+offset+chunk_size
         test = os.path.join(test_root, str(i))
+        if not os.path.exists(BOTH):
+          os.mkdir(BOTH)
         if not os.path.exists(test):
-          copytree("both", test)
+          copytree(BOTH, test)
         p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o))
         procs.append(p)
         outs.append(o)
