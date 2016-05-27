@@ -63,7 +63,7 @@ def run_all(benchmark, test_root, output):
       for o in outs:
         with open(o, "r") as f_in:
           for line in f_in:
-            print(line, file=f_out)
+            print(line, file=f_out, end="")
         os.remove(o)
     return
 
@@ -104,7 +104,7 @@ def run_1(test):
     vals = []
     for i in range(3):
       vals.append(run(test))
-    return sum(vals) / len(vals)
+    return vals
 
 def run(test):
     output = str(subprocess.check_output('retic %s/main.py' % test, shell=True), encoding="utf-8")
