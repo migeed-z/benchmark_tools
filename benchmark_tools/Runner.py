@@ -9,7 +9,7 @@ from math import log2
 from benchmark_tools.Reader import get_name
 
 BOTH = "both"
-jobs = 2
+jobs = 4
 
 def product(xs):
   prod = 1
