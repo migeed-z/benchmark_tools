@@ -9,7 +9,7 @@ from math import log2
 from benchmark_tools.Reader import get_name
 
 BOTH = "both"
-jobs = 4
+jobs = 2
 
 def product(xs):
   prod = 1
@@ -35,7 +35,6 @@ def run_all(benchmark, test_root, output):
 
     if 0 == jobs:
       raise RuntimeError("Need a non-zero number of jobs")
-    chunk_size = None
     if jobs < num_configs:
       chunk_size = int(num_configs / jobs)
     else:
@@ -48,7 +47,7 @@ def run_all(benchmark, test_root, output):
         offset = i * chunk_size
         o = "%s.%s" % (output, i)
         lo = offset
-        hi = 1+offset+chunk_size
+        hi = offset+chunk_size
         test = os.path.join(test_root, str(i))
         if not os.path.exists(BOTH):
           os.mkdir(BOTH)
