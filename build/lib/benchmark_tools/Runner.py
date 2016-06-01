@@ -26,7 +26,7 @@ def run_all(benchmark, test_root, output):
     """
     if not os.path.exists(test_root):
       os.mkdir(test_root)
-    directories = glob.glob('%s/*' % benchmark)
+    directories = sorted(glob.glob('%s/*' % benchmark))
     names = [get_name(d) for d in directories]
 
     all_files = [glob.glob('%s/*' % d) for d in directories]
@@ -60,6 +60,7 @@ def run_all(benchmark, test_root, output):
     # Need to wait for chunks to finish
     [p.join() for p in procs]
     with open(output, "w") as f_out:
+      print("File Name: %s ")
       for o in outs:
         with open(o, "r") as f_in:
           for line in f_in:

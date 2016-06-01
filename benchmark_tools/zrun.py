@@ -8,6 +8,6 @@ def main():
         gen_all('typed', target)
         run_all(target,
                 './Test',
-                './output.py')
+                './output.txt')
     else:
         print('No typed folder')
