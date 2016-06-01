@@ -1,12 +1,17 @@
 import ast
 import glob
+import sys
 
 def get_file_names(dir_path):
     """
     :param dir_path: Path of directory containing file names
     :return: list of file paths
     """
-    return sorted(glob.glob(dir_path+"/typed/*.py"))
+    #return sorted(glob.glob(dir_path+"/typed/*.py"))
+    #hardcoded = ["main.py", "player.py", "dealer.py"] # Take5 2016-04-20
+    #hardcoded = ["main", "Other", "Population", "Utilities", "Automata"] # FSM 2016-05-13
+    hardcoded = ["dealer", "player", "main"]
+    return ["%s/typed/%s.py" % (dir_path, argh) for argh in hardcoded]
 
 
 def read_from_file(txt_file, dir_path):
@@ -17,7 +22,7 @@ def read_from_file(txt_file, dir_path):
     :return: None
     """
     with open(txt_file, "r") as lines:
-        with open("csv_file.csv", "w") as output:
+        with open("%s.csv" % txt_file.rsplit("/", 1)[1], "w") as output:
 
             file_names = get_file_names(dir_path)
 
@@ -34,7 +39,12 @@ def read_from_file(txt_file, dir_path):
                     print("%s,%s" % (t, ",".join(res)), file=output)
 
 def get_times(times):
-    return ast.literal_eval(times)
+    val = ast.literal_eval(times)
+    if not isinstance(val, list):
+      #print("WARNING: only 1 time in data row. Did you average the data? That's not good.")
+      return [val]
+    else:
+      return val
 
 def get_nums(a_line):
     """
@@ -135,3 +145,5 @@ def convert_num_to_binary(number, max_number):
     x =  config.zfill(max_number)
     return x
 
+if __name__ == "__main__":
+  read_from_file(sys.argv[1], sys.argv[2])
