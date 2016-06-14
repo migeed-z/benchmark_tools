@@ -1,4 +1,6 @@
 setup.py
+benchmark_tools/Counter.py
+benchmark_tools/ProcessText.py
 benchmark_tools/Reader.py
 benchmark_tools/Runner.py
 benchmark_tools/Timer.py
