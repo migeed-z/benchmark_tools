@@ -7,11 +7,11 @@ def get_file_names(dir_path):
     :param dir_path: Path of directory containing file names
     :return: list of file paths
     """
-    #return sorted(glob.glob(dir_path+"/typed/*.py"))
+    return sorted(glob.glob(dir_path+"/typed/*.py"))
     #hardcoded = ["main.py", "player.py", "dealer.py"] # Take5 2016-04-20
     #hardcoded = ["main", "Other", "Population", "Utilities", "Automata"] # FSM 2016-05-13
-    hardcoded = ["dealer", "player", "main"]
-    return ["%s/typed/%s.py" % (dir_path, argh) for argh in hardcoded]
+    # hardcoded = ["dealer", "player", "main"]
+    # return ["%s/typed/%s.py" % (dir_path, argh) for argh in hardcoded]
 
 
 def read_from_file(txt_file, dir_path):
