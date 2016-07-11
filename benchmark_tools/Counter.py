@@ -5,7 +5,8 @@ from benchmark_tools.ProcessText import get_function_names_for_file, get_file_na
 calls = {}
 
 def counted(f):
-    me = "%s.%s" % (__file__, f)
+    me = "%s" % f
+
     def wrapped(*args, **kwargs):
         calls[me] += 1
         return f(*args, **kwargs)
@@ -34,9 +35,4 @@ def get_num_calls():
     :return: {Str:Int, ....}
     """
     return calls
-
-
-
-
-
 

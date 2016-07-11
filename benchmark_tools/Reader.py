@@ -75,7 +75,6 @@ def all_configurations_def(d, all=None):
         return [res[0], res[-1]]
 
 
-
 def all_configurations_ast(ast):
     """
     Remove all types from AST
@@ -86,11 +85,21 @@ def all_configurations_ast(ast):
     body = ast_copy.body
     ast_list = []
     body_list = []
+
     for node in body:
         if isinstance(node, FunctionDef):
             body_list = branch(body_list, all_configurations_def(node))
+
         elif isinstance(node, ClassDef):
-            body_list = branch(body_list, all_configurations_ast(node))
+
+            node_no_dec = deepcopy(node)
+            node_no_dec.decorator_list = []
+
+            body_list1 = branch(body_list, all_configurations_ast(node))
+            body_list2 = branch(body_list, all_configurations_ast(node_no_dec))
+
+            body_list = body_list1 + body_list2
+
         else:
             body_list = branch(body_list, [node])
 
