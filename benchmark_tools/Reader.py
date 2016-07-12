@@ -5,7 +5,7 @@ from ast import FunctionDef, parse, ClassDef, Module
 from astor import to_source
 from os import listdir
 from os.path import isfile, join
-
+from benchmark_tools.constants import *
 
 def data_path(filename):
     this_package_path = os.path.dirname(os.path.abspath(__file__))
@@ -88,6 +88,7 @@ def all_configurations_ast(ast):
 
     for node in body:
         if isinstance(node, FunctionDef):
+            node.decorator_list = [d for d in node.decorator_list if d.id == counter_decorator]
             body_list = branch(body_list, all_configurations_def(node))
 
         elif isinstance(node, ClassDef):
