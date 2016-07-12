@@ -8,11 +8,6 @@ def get_file_names(dir_path):
     :return: list of file paths
     """
     return sorted(glob.glob(dir_path+"/typed/*.py"))
-    #hardcoded = ["main.py", "player.py", "dealer.py"] # Take5 2016-04-20
-    #hardcoded = ["main", "Other", "Population", "Utilities", "Automata"] # FSM 2016-05-13
-    # hardcoded = ["dealer", "player", "main"]
-    # return ["%s/typed/%s.py" % (dir_path, argh) for argh in hardcoded]
-
 
 def read_from_file(txt_file, dir_path):
     """
@@ -97,6 +92,7 @@ def get_function_names_for_file(file):
             if isinstance(exp, ast.FunctionDef):
                 names.append("%s.%s" % (file_name, exp.name))
             elif isinstance(exp, ast.ClassDef):
+                names.append("%s.%s" % (file_name, exp.name))
                 unvisited.extend([x for x in exp.body])
 
         return names
