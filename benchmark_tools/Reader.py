@@ -7,6 +7,7 @@ from os import listdir
 from os.path import isfile, join
 from benchmark_tools.constants import *
 from random import choice
+from benchmark_tools.constants import *
 
 def data_path(filename):
     this_package_path = os.path.dirname(os.path.abspath(__file__))
@@ -126,11 +127,12 @@ def all_configurations_def_random(d, all=None):
     :param d: FunctionDef
     :return [FunctionDef]
     """
+    d.decorator_list = [dec for dec in d.decorator_list if dec.id == counter_decorator]
     d.args = get_random_list_args(d.args)
+
     annotate = choice([0, 1])
     if not annotate:
         d.returns = None
-
 
 def all_configurations_ast(ast):
     """
@@ -168,20 +170,17 @@ def all_configurations_ast(ast):
     return ast_list
 
 
-
 def all_configurations_ast_random(ast):
     """
     Remove all types from AST
     :param ast: AST
     :return: None
     """
-
     body = ast.body
 
     for node in body:
 
         if isinstance(node, FunctionDef):
-            node.decorator_list = [d for d in node.decorator_list if d.id == counter_decorator]
             all_configurations_def_random(node)
 
         elif isinstance(node, ClassDef):
@@ -190,11 +189,8 @@ def all_configurations_ast_random(ast):
                 node.decorator_list = []
 
             for f in node.body:
-                if not isinstance(f, Assign):
-                    print("before: %s" % f)
-                    all_configurations_ast_random(f)
-
-
+                if isinstance(f, FunctionDef):
+                    all_configurations_def_random(f)
 
 
 def branch(prefixes, suffixes):
