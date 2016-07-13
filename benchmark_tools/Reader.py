@@ -6,6 +6,7 @@ from astor import to_source
 from os import listdir
 from os.path import isfile, join
 from benchmark_tools.constants import *
+from random import choice
 
 def data_path(filename):
     this_package_path = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +28,29 @@ def all_configurations(file_name, output_directory):
         with open("%s/%s.py" % (file_directory, i), "w") as out:
             print(to_source(ast), file=out)
         i += 1
+
+def all_configurations_random(file_name, output_directory):
+    """
+    Generates all configurations and outputs them in the output directory
+    :param file_name:
+    :param output_directory:
+    :return:
+    """
+    name = get_name(file_name)
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+    file_directory = os.path.join(output_directory, name)
+    if not os.path.exists(file_directory):
+        os.mkdir(file_directory)
+    with open(file_name, "r") as f:
+        parsed = parse(f.read(), filename='<unknown>', mode='exec')
+    all_configs = all_configurations_ast_random(parsed)
+    i = 0
+    for ast in all_configs:
+        with open("%s/%s.py" % (file_directory, i), "w") as out:
+            print(to_source(ast), file=out)
+        i += 1
+
 
 def get_name(fname):
     return fname.rsplit("/", 1)[-1].rsplit(".", 1)[0]
@@ -51,6 +75,25 @@ def all_configurations_args(typed_args):
     return res
 
 
+def all_configurations_args_random(typed_args):
+    """
+    Returns list of args
+    :param list_of_typed: arg
+    :return: set of arguments annonated randomly
+    """
+    new_args = []
+    new_res = deepcopy(typed_args)
+    for arg in typed_args.args:
+        new_arg = deepcopy(arg)
+        annotate = choice([0, 1])
+        if not annotate:
+            # print("arg off %s" % new_arg)
+            new_arg.annotation = None
+        new_args.append(new_arg)
+    new_res.args = new_args
+    return new_res
+
+
 def all_configurations_def(d, all=None):
     """
     Creates list of all possible FunctionDefs
@@ -60,6 +103,7 @@ def all_configurations_def(d, all=None):
     args = d.args
     res = []
     list_of_args = all_configurations_args(args)
+
     for arg in list_of_args:
         new_def = deepcopy(d)
         new_def.args = arg
@@ -73,6 +117,26 @@ def all_configurations_def(d, all=None):
 
     else:
         return [res[0], res[-1]]
+
+
+def all_configurations_def_random(d, all=None):
+    """
+    Creates list of random function definitions
+    :param d: FunctionDef
+    :return [FunctionDef ...]
+    """
+    args = d.args
+    res = []
+
+    for i in range(random_sample_size):
+        new_def = deepcopy(d)
+        new_def.args = all_configurations_args_random(args)
+        annotate = choice([0, 1])
+        if not annotate:
+            new_def.returns = None
+        res.append(new_def)
+
+    return res
 
 
 def all_configurations_ast(ast):
@@ -98,7 +162,6 @@ def all_configurations_ast(ast):
 
             body_list1 = branch(body_list, all_configurations_ast(node))
             body_list2 = branch(body_list, all_configurations_ast(node_no_dec))
-
             body_list = body_list1 + body_list2
 
         else:
@@ -110,6 +173,48 @@ def all_configurations_ast(ast):
         ast_list.append(new_ast)
 
     return ast_list
+
+
+
+def all_configurations_ast_random(ast):
+    """
+    Remove all types from AST
+    :param ast: AST
+    :return: [AST ...]
+    """
+    ast_copy = deepcopy(ast)
+    body = ast_copy.body
+    ast_list = []
+    body_list = []
+
+    for node in body:
+        if isinstance(node, FunctionDef):
+            node.decorator_list = [d for d in node.decorator_list if d.id == counter_decorator]
+            body_list = branch(body_list, all_configurations_def_random(node))
+
+        elif isinstance(node, ClassDef):
+            new_body_list = []
+            for i in range(random_sample_size):
+                dec = choice([0, 1])
+                new_node = deepcopy(node)
+                if not dec:
+                    print("dec off")
+                    new_node.decorator_list = []
+                res = branch(body_list, all_configurations_ast_random(new_node))
+                new_body_list += res
+            body_list = new_body_list
+
+        else:
+            body_list = branch(body_list, [node])
+
+
+    for body in body_list:
+        new_ast = deepcopy(ast)
+        new_ast.body = body
+        ast_list.append(new_ast)
+
+    return ast_list
+
 
 def branch(prefixes, suffixes):
     """
@@ -140,3 +245,17 @@ def gen_all(dir_path, target):
         p = os.path.join(dir_path, f)
         all_configurations(p, target)
 
+
+#TODO: abstract this
+def gen_all_random(dir_path, target):
+    """
+
+    :param dir_path:
+    :param target:
+    :return:
+    """
+    all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    print("Generating configurations for %s" % all_files)
+    for f in all_files:
+        p = os.path.join(dir_path, f)
+        all_configurations_random(p, target)
