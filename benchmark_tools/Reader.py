@@ -1,7 +1,7 @@
 import os
 import sys
 from copy import deepcopy
-from ast import FunctionDef, parse, ClassDef, Module
+from ast import FunctionDef, parse, ClassDef, Module, Assign
 from astor import to_source
 from os import listdir
 from os.path import isfile, join
@@ -44,12 +44,13 @@ def all_configurations_random(file_name, output_directory):
         os.mkdir(file_directory)
     with open(file_name, "r") as f:
         parsed = parse(f.read(), filename='<unknown>', mode='exec')
-    all_configs = all_configurations_ast_random(parsed)
+    #this passes in a copy of the AST now
+    new_config = deepcopy(parsed)
+    all_configurations_ast_random(new_config)
     i = 0
-    for ast in all_configs:
-        with open("%s/%s.py" % (file_directory, i), "w") as out:
-            print(to_source(ast), file=out)
-        i += 1
+    with open("%s/%s.py" % (file_directory, i), "w") as out:
+        print(to_source(new_config), file=out)
+    i += 1
 
 
 def get_name(fname):
@@ -75,9 +76,9 @@ def all_configurations_args(typed_args):
     return res
 
 
-def all_configurations_args_random(typed_args):
+def get_random_list_args(typed_args):
     """
-    Returns list of args
+    Returns one set of random arguments for one function.
     :param list_of_typed: arg
     :return: set of arguments annonated randomly
     """
@@ -121,22 +122,14 @@ def all_configurations_def(d, all=None):
 
 def all_configurations_def_random(d, all=None):
     """
-    Creates list of random function definitions
+    Mutates args randomly by turning annotations on/off
     :param d: FunctionDef
-    :return [FunctionDef ...]
+    :return [FunctionDef]
     """
-    args = d.args
-    res = []
-
-    for i in range(random_sample_size):
-        new_def = deepcopy(d)
-        new_def.args = all_configurations_args_random(args)
-        annotate = choice([0, 1])
-        if not annotate:
-            new_def.returns = None
-        res.append(new_def)
-
-    return res
+    d.args = get_random_list_args(d.args)
+    annotate = choice([0, 1])
+    if not annotate:
+        d.returns = None
 
 
 def all_configurations_ast(ast):
@@ -180,40 +173,28 @@ def all_configurations_ast_random(ast):
     """
     Remove all types from AST
     :param ast: AST
-    :return: [AST ...]
+    :return: None
     """
-    ast_copy = deepcopy(ast)
-    body = ast_copy.body
-    ast_list = []
-    body_list = []
+
+    body = ast.body
 
     for node in body:
+
         if isinstance(node, FunctionDef):
             node.decorator_list = [d for d in node.decorator_list if d.id == counter_decorator]
-            body_list = branch(body_list, all_configurations_def_random(node))
+            all_configurations_def_random(node)
 
         elif isinstance(node, ClassDef):
-            new_body_list = []
-            for i in range(random_sample_size):
-                dec = choice([0, 1])
-                new_node = deepcopy(node)
-                if not dec:
-                    print("dec off")
-                    new_node.decorator_list = []
-                res = branch(body_list, all_configurations_ast_random(new_node))
-                new_body_list += res
-            body_list = new_body_list
+            dec = choice([0, 1])
+            if not dec:
+                node.decorator_list = []
 
-        else:
-            body_list = branch(body_list, [node])
+            for f in node.body:
+                if not isinstance(f, Assign):
+                    print("before: %s" % f)
+                    all_configurations_ast_random(f)
 
 
-    for body in body_list:
-        new_ast = deepcopy(ast)
-        new_ast.body = body
-        ast_list.append(new_ast)
-
-    return ast_list
 
 
 def branch(prefixes, suffixes):
