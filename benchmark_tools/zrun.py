@@ -1,7 +1,7 @@
 # import os
 # from benchmark_tools.Reader import gen_all
 # from benchmark_tools.Runner import run_all
-#
+# #
 # def main():
 #     target = "./Benchmark"
 #     if os.path.exists('typed'):
@@ -14,12 +14,12 @@
 
 
 import os
-from benchmark_tools.Reader import gen_all_random
+from benchmark_tools.Reader import gen_all
 
 def main():
     target = "./Benchmark"
     if os.path.exists('typed'):
-        gen_all_random('typed', target)
+        gen_all('typed', target, rand=True)
         # run_all_random(target,
         #         './Test',
         #         './output.txt')

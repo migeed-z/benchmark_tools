@@ -14,7 +14,7 @@ def data_path(filename):
     return os.path.join(this_package_path, filename)
 
 
-def all_configurations(file_name, output_directory):
+def all_configurations(file_name, output_directory, rand=None):
     name = get_name(file_name)
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
@@ -23,36 +23,17 @@ def all_configurations(file_name, output_directory):
         os.mkdir(file_directory)
     with open(file_name, "r") as f:
         parsed = parse(f.read(), filename='<unknown>', mode='exec')
-    all_configs = all_configurations_ast(parsed)
+    if rand:
+        new_config = deepcopy(parsed)
+        all_configurations_ast_random(new_config)
+        all_configs = [new_config]
+    else:
+        all_configs = all_configurations_ast(parsed)
     i = 0
     for ast in all_configs:
         with open("%s/%s.py" % (file_directory, i), "w") as out:
             print(to_source(ast), file=out)
         i += 1
-
-def all_configurations_random(file_name, output_directory):
-    """
-    Generates all configurations and outputs them in the output directory
-    :param file_name:
-    :param output_directory:
-    :return:
-    """
-    name = get_name(file_name)
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
-    file_directory = os.path.join(output_directory, name)
-    if not os.path.exists(file_directory):
-        os.mkdir(file_directory)
-    with open(file_name, "r") as f:
-        parsed = parse(f.read(), filename='<unknown>', mode='exec')
-    #this passes in a copy of the AST now
-    new_config = deepcopy(parsed)
-    all_configurations_ast_random(new_config)
-    i = 0
-    with open("%s/%s.py" % (file_directory, i), "w") as out:
-        print(to_source(new_config), file=out)
-    i += 1
-
 
 def get_name(fname):
     return fname.rsplit("/", 1)[-1].rsplit(".", 1)[0]
@@ -209,7 +190,7 @@ def branch(prefixes, suffixes):
     return res
 
 
-def gen_all(dir_path, target):
+def gen_all(dir_path, target, rand=None):
     """
     Generates permutation on all files in
     dir_path
@@ -220,19 +201,6 @@ def gen_all(dir_path, target):
     print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
-        all_configurations(p, target)
+        all_configurations(p, target, rand=rand)
 
 
-#TODO: abstract this
-def gen_all_random(dir_path, target):
-    """
-
-    :param dir_path:
-    :param target:
-    :return:
-    """
-    all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
-    print("Generating configurations for %s" % all_files)
-    for f in all_files:
-        p = os.path.join(dir_path, f)
-        all_configurations_random(p, target)
