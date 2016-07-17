@@ -226,7 +226,7 @@ def scan_all_program(dir_path):
     :param target:
     :return:
     """
-    all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    all_files = get_all_files(dir_path)
     total_bits = 0
     for f in all_files:
         p = os.path.join(dir_path, f)
@@ -245,7 +245,7 @@ def gen_all(dir_path, target, rand=None):
     if rand:
         n = scan_all_program(dir_path)
         rand = [choice([0,1]) for i in range(n)]
-    all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    all_files = get_all_files(dir_path)
     print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
@@ -253,4 +253,6 @@ def gen_all(dir_path, target, rand=None):
 
 
 
+def get_all_files(dir_path):
+     return [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
 
