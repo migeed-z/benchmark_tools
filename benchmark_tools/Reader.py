@@ -6,26 +6,34 @@ from astor import to_source
 from os import listdir
 from os.path import isfile, join
 from benchmark_tools.constants import *
-from random import choice
+from random import getrandbits, choice
 from benchmark_tools.constants import *
+
 
 def data_path(filename):
     this_package_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(this_package_path, filename)
 
 
-def all_configurations(file_name, output_directory, rand=None):
+def parse_ast(file_name):
+    with open(file_name, "r") as f:
+        return parse(f.read(), filename='<unknown>', mode='exec')
+
+def parse_file(file_name, output_directory):
     name = get_name(file_name)
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
     file_directory = os.path.join(output_directory, name)
     if not os.path.exists(file_directory):
         os.mkdir(file_directory)
-    with open(file_name, "r") as f:
-        parsed = parse(f.read(), filename='<unknown>', mode='exec')
-    if rand:
+    parsed = parse_ast(file_name)
+    return (parsed, file_directory)
+
+def all_configurations(file_name, output_directory, rand_bits=None):
+    (parsed, file_directory) = parse_file(file_name, output_directory)
+    if rand_bits:
         new_config = deepcopy(parsed)
-        all_configurations_ast_random(new_config)
+        all_configurations_ast_random(new_config, rand_bits)
         all_configs = [new_config]
     else:
         all_configs = all_configurations_ast(parsed)
@@ -38,6 +46,25 @@ def all_configurations(file_name, output_directory, rand=None):
 def get_name(fname):
     return fname.rsplit("/", 1)[-1].rsplit(".", 1)[0]
 
+def scan_ast(ast):
+    """
+    Scans the AST to find the sequence of bits needed for random sampling
+    :param ast: AST
+    :return: number of bits needed
+    """
+    body = ast.body
+    res = 0
+    for node in body:
+
+        if isinstance(node, FunctionDef):
+            res += len(node.args.args) + 1
+
+        elif isinstance(node, ClassDef):
+            res += 1
+            for f in node.body:
+                if isinstance(f, FunctionDef):
+                    res += len(f.args.args) + 1
+    return res
 
 def all_configurations_args(typed_args):
     """
@@ -58,19 +85,19 @@ def all_configurations_args(typed_args):
     return res
 
 
-def get_random_list_args(typed_args):
+def get_random_list_args(typed_args, rand_bits):
     """
     Returns one set of random arguments for one function.
     :param list_of_typed: arg
+    :param sequence of random bits
     :return: set of arguments annonated randomly
     """
     new_args = []
     new_res = deepcopy(typed_args)
     for arg in typed_args.args:
         new_arg = deepcopy(arg)
-        annotate = choice([0, 1])
+        annotate = rand_bits.pop(0)
         if not annotate:
-            # print("arg off %s" % new_arg)
             new_arg.annotation = None
         new_args.append(new_arg)
     new_res.args = new_args
@@ -102,17 +129,18 @@ def all_configurations_def(d, all=None):
         return [res[0], res[-1]]
 
 
-def all_configurations_def_random(d, all=None):
+def all_configurations_def_random(d, random_bits, all=None):
     """
     Mutates args randomly by turning annotations on/off
     :param d: FunctionDef
     :return [FunctionDef]
     """
-    d.decorator_list = [dec for dec in d.decorator_list if dec.id == counter_decorator]
-    d.args = get_random_list_args(d.args)
 
-    annotate = choice([0, 1])
-    if not annotate:
+    d.decorator_list = [dec for dec in d.decorator_list if dec.id == counter_decorator]
+    d.args = get_random_list_args(d.args, random_bits)
+
+    ann_return = random_bits.pop(0)
+    if not ann_return:
         d.returns = None
 
 def all_configurations_ast(ast):
@@ -151,27 +179,28 @@ def all_configurations_ast(ast):
     return ast_list
 
 
-def all_configurations_ast_random(ast):
+def all_configurations_ast_random(ast, rand_bits):
     """
     Remove all types from AST
     :param ast: AST
+    :param rand_bits: The sequence of random numbers
     :return: None
     """
     body = ast.body
-
     for node in body:
 
         if isinstance(node, FunctionDef):
-            all_configurations_def_random(node)
+            all_configurations_def_random(node, rand_bits)
 
         elif isinstance(node, ClassDef):
-            dec = choice([0, 1])
+            dec = rand_bits.pop(0)
             if not dec:
                 node.decorator_list = []
 
             for f in node.body:
                 if isinstance(f, FunctionDef):
-                    all_configurations_def_random(f)
+                    all_configurations_def_random(f, rand_bits)
+
 
 
 def branch(prefixes, suffixes):
@@ -190,6 +219,22 @@ def branch(prefixes, suffixes):
     return res
 
 
+def scan_all_program(dir_path):
+    """
+    gets number of bits for all program
+    :param dir_path:
+    :param target:
+    :return:
+    """
+    all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
+    total_bits = 0
+    for f in all_files:
+        p = os.path.join(dir_path, f)
+        parsed = parse_ast(p)
+        total_bits += scan_ast(parsed)
+    return total_bits
+
+
 def gen_all(dir_path, target, rand=None):
     """
     Generates permutation on all files in
@@ -197,10 +242,15 @@ def gen_all(dir_path, target, rand=None):
     :param dir_path: String
     :return: None
     """
+    if rand:
+        n = scan_all_program(dir_path)
+        rand = [choice([0,1]) for i in range(n)]
     all_files = [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
     print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
-        all_configurations(p, target, rand=rand)
+        all_configurations(p, target, rand_bits=rand)
+
+
 
 
