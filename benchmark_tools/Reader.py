@@ -232,7 +232,7 @@ def gen_all(dir_path, target, rand=None):
     Generates permutation on all files in
     dir_path
     :param dir_path: String
-    :return: None
+    :return: Num of Random bits
     """
     parsed = []
 
@@ -250,6 +250,7 @@ def gen_all(dir_path, target, rand=None):
     for i in range(len(parsed)):
         all_configurations(parsed[i], all_files[i], target, rand_bits=rand)
 
+    return rand
 
 def get_all_files(dir_path):
      return [f for f in listdir(dir_path) if isfile(join(dir_path, f))]

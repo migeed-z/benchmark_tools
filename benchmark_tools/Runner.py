@@ -17,11 +17,12 @@ def product(xs):
     prod = prod * x
   return prod
 
-def run_all(benchmark, test_root, output):
+def run_all(benchmark, test_root, output, rand=None):
     """
     :param benchmark: Full path
     :param test_root: Full path
     :param output: path
+    :param rand: None or sequence of random bits
     :return: None
     """
     if not os.path.exists(test_root):
