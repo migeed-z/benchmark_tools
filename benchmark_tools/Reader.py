@@ -19,18 +19,15 @@ def parse_ast(file_name):
     with open(file_name, "r") as f:
         return parse(f.read(), filename='<unknown>', mode='exec')
 
-def parse_file(file_name, output_directory):
+def all_configurations(parsed, file_name, output_directory, rand_bits=None):
+
     name = get_name(file_name)
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
     file_directory = os.path.join(output_directory, name)
     if not os.path.exists(file_directory):
         os.mkdir(file_directory)
-    parsed = parse_ast(file_name)
-    return (parsed, file_directory)
 
-def all_configurations(file_name, output_directory, rand_bits=None):
-    (parsed, file_directory) = parse_file(file_name, output_directory)
     if rand_bits:
         new_config = deepcopy(parsed)
         all_configurations_ast_random(new_config, rand_bits)
@@ -201,8 +198,6 @@ def all_configurations_ast_random(ast, rand_bits):
                 if isinstance(f, FunctionDef):
                     all_configurations_def_random(f, rand_bits)
 
-
-
 def branch(prefixes, suffixes):
     """
     Adds each suffix to the end of each prefix
@@ -219,19 +214,16 @@ def branch(prefixes, suffixes):
     return res
 
 
-def scan_all_program(dir_path):
+def scan_all_program(parsed):
     """
     gets number of bits for all program
     :param dir_path:
     :param target:
     :return:
     """
-    all_files = get_all_files(dir_path)
     total_bits = 0
-    for f in all_files:
-        p = os.path.join(dir_path, f)
-        parsed = parse_ast(p)
-        total_bits += scan_ast(parsed)
+    for p in parsed:
+        total_bits += scan_ast(p)
     return total_bits
 
 
@@ -242,15 +234,21 @@ def gen_all(dir_path, target, rand=None):
     :param dir_path: String
     :return: None
     """
-    if rand:
-        n = scan_all_program(dir_path)
-        rand = [choice([0,1]) for i in range(n)]
+    parsed = []
+
     all_files = get_all_files(dir_path)
-    print("Generating configurations for %s" % all_files)
     for f in all_files:
         p = os.path.join(dir_path, f)
-        all_configurations(p, target, rand_bits=rand)
+        parsed.append(parse_ast(p))
 
+    if rand:
+        n = scan_all_program(parsed)
+        rand = [choice([0,1]) for i in range(n)]
+
+    all_files = get_all_files(dir_path)
+    print("Generating configurations for %s" % all_files)
+    for i in range(len(parsed)):
+        all_configurations(parsed[i], all_files[i], target, rand_bits=rand)
 
 
 def get_all_files(dir_path):
