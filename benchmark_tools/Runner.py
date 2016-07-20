@@ -103,7 +103,8 @@ def run_chunk(all_files, lo, hi, lengths, names, test, output, rand=None):
             nums = [get_name(f) for f in files]
             tag = '-'.join(nums)
             if rand:
-                print("%s   %s   %s" % (rand[0], count_types(nums, lengths), t), file=out)
+
+                out.write("%s   %s   %s \n" % (rand[0], count_types(nums, lengths), t))
             else:
                 print('%s   %s   %s' % (tag, count_types(nums, lengths), t), file=out)
 
