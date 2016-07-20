@@ -219,11 +219,11 @@ def scan_all_program(parsed):
     gets number of bits for all program
     :param dir_path:
     :param target:
-    :return:
+    :return: List of numbers, each corresponding to the number of annotations per file
     """
-    total_bits = 0
+    total_bits = []
     for p in parsed:
-        total_bits += scan_ast(p)
+        total_bits.append(scan_ast(p))
     return total_bits
 
 
@@ -235,23 +235,28 @@ def gen_all(dir_path, target, rand=None):
     :return: Num of Random bits
     """
     parsed = []
+    n=None
 
     all_files = get_all_files(dir_path)
     for f in all_files:
         p = os.path.join(dir_path, f)
         parsed.append(parse_ast(p))
 
-    if rand:
-        n = scan_all_program(parsed)
-        rand = [choice([0,1]) for i in range(n)]
+    rand_and_ref = get_rand_bits(rand, parsed)
+    bits_only = deepcopy(rand_and_ref[0])
 
     all_files = get_all_files(dir_path)
     print("Generating configurations for %s" % all_files)
     for i in range(len(parsed)):
-        all_configurations(parsed[i], all_files[i], target, rand_bits=rand)
+        all_configurations(parsed[i], all_files[i], target, rand_bits=bits_only)
 
-    return rand
+    return rand_and_ref
 
 def get_all_files(dir_path):
      return [f for f in listdir(dir_path) if isfile(join(dir_path, f))]
 
+
+def get_rand_bits(rand, parsed):
+    if rand:
+        n = scan_all_program(parsed)
+        return [choice([0,1]) for i in range(sum(n))], n

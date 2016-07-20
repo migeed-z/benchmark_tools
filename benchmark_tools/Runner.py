@@ -22,7 +22,8 @@ def run_all(benchmark, test_root, output, rand=None):
     :param benchmark: Full path
     :param test_root: Full path
     :param output: path
-    :param rand: None or sequence of random bits
+    :param rand: A tuple consisting of number of bits per file and random bits
+    :type rand: ([int, ...], [0/1, ...])
     :return: None
     """
     if not os.path.exists(test_root):
@@ -54,7 +55,7 @@ def run_all(benchmark, test_root, output, rand=None):
           os.mkdir(BOTH)
         if not os.path.exists(test):
           copytree(BOTH, test)
-        p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o))
+        p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o, rand))
         procs.append(p)
         outs.append(o)
     [p.start() for p in procs]
@@ -86,10 +87,10 @@ def count_types(nums, lengths):
 
     return total
 
-def run_chunk(all_files, lo, hi, lengths, names, test, output):
+def run_chunk(all_files, lo, hi, lengths, names, test, output, rand=None):
 
     with open(output, 'w') as out:
-        print("Running benchmarks [%s, %s)" % (lo, hi))
+        print("Running benchmarks (%s, %s)" % (lo, hi))
         for files in itertools.islice(itertools.product(*all_files), lo, hi):
             print("Running: %s" % list(files))
             for name, file in zip(names, files):
@@ -97,7 +98,10 @@ def run_chunk(all_files, lo, hi, lengths, names, test, output):
             t = run_1(test)
             nums = [get_name(f) for f in files]
             tag = '-'.join(nums)
-            print('%s   %s   %s' % (tag, count_types(nums, lengths), t), file=out)
+            if rand:
+                print('%s   %s   %s' % (rand[0], count_types(nums, lengths), t), file=out)
+            else:
+                print('%s   %s   %s' % (tag, count_types(nums, lengths), t), file=out)
 
 def run_1(test):
     os.system("rm -rf __pycache__")
