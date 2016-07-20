@@ -28,4 +28,6 @@ def run_benchmark(rand):
                 './output.txt', rand=rand_and_ref)
     else:
         print('No typed folder')
+        return
+
 

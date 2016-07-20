@@ -49,7 +49,7 @@ def run_all(benchmark, test_root, output, rand=None):
     [p.start() for p in procs]
     # Need to wait for chunks to finish
     [p.join() for p in procs]
-    with open(output, "w") as f_out:
+    with open(output, "a") as f_out:
       print("File Name: %s " % output)
       for o in outs:
         with open(o, "r") as f_in:
