@@ -243,7 +243,7 @@ def gen_all(dir_path, target, rand=None):
         parsed.append(parse_ast(p))
 
     rand_and_ref = get_rand_bits(rand, parsed)
-    bits_only = deepcopy(rand_and_ref[0])
+    bits_only = None if not rand_and_ref else deepcopy(rand_and_ref[0])
 
     all_files = get_all_files(dir_path)
     print("Generating configurations for %s" % all_files)

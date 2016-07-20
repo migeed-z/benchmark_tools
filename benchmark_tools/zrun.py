@@ -11,9 +11,18 @@ def main():
 
     rand = int(args.rand)
 
+    if rand:
+        while True:
+            run_benchmark(True)
+    else:
+        run_benchmark(False)
+
+
+
+def run_benchmark(rand):
     target = "./Benchmark"
     if os.path.exists('typed'):
-        rand_and_ref = gen_all('typed', target, rand=bool(rand))
+        rand_and_ref = gen_all('typed', target, rand=rand)
         run_all(target,
                 './Test',
                 './output.txt', rand=rand_and_ref)
