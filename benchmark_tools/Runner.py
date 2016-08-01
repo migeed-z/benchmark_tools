@@ -94,7 +94,7 @@ def count_types(nums, lengths):
 def run_chunk(all_files, lo, hi, lengths, names, test, output, rand=None):
 
     with open(output, 'a') as out:
-        print("Running benchmarks (%s, %s)" % (lo, hi))
+        print("Running benchmarks [%s, %s)" % (lo, hi))
         for files in itertools.islice(itertools.product(*all_files), lo, hi):
             print("Running: %s" % list(files))
             for name, file in zip(names, files):
