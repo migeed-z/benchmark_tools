@@ -9,7 +9,6 @@ from math import log2
 from benchmark_tools.Reader import get_name
 
 BOTH = "both"
-jobs = 4
 
 def product(xs):
   prod = 1
@@ -17,13 +16,16 @@ def product(xs):
     prod = prod * x
   return prod
 
-def run_all(benchmark, test_root, output):
+def run_all(benchmark, test_root, output, rand=None):
     """
     :param benchmark: Full path
     :param test_root: Full path
     :param output: path
+    :param rand: A tuple consisting of number of bits per file and random bits
+    :type rand: ([int, ...], [0/1, ...])
     :return: None
     """
+    jobs = 4 if not rand else 4
     if not os.path.exists(test_root):
       os.mkdir(test_root)
     directories = sorted(glob.glob('%s/*' % benchmark))
@@ -33,7 +35,7 @@ def run_all(benchmark, test_root, output):
     lengths = [len(files) for files in all_files]
     num_configs = product((len(f) for f in all_files))
 
-    if 0 == jobs:
+    if jobs == 0:
       raise RuntimeError("Need a non-zero number of jobs")
     if jobs < num_configs:
       chunk_size = int(num_configs / jobs)
@@ -43,7 +45,22 @@ def run_all(benchmark, test_root, output):
     procs = []
     outs = []
     for i in range(jobs):
-      if i < num_configs:
+        run_job(num_configs, chunk_size, test_root, output, i, all_files, lengths,names,rand, procs,outs)
+    [p.start() for p in procs]
+    # Need to wait for chunks to finish
+    [p.join() for p in procs]
+    with open(output, "a") as f_out:
+      print("File Name: %s " % output)
+      for o in outs:
+        with open(o, "r") as f_in:
+          for line in f_in:
+            print(line, file=f_out, end="")
+        os.remove(o)
+    return
+
+
+def run_job(num_configs, chunk_size, test_root, output, i, all_files, lengths, names,rand, procs,outs):
+    if i < num_configs:
         offset = i * chunk_size
         o = "%s.%s" % (output, i)
         lo = offset
@@ -53,20 +70,9 @@ def run_all(benchmark, test_root, output):
           os.mkdir(BOTH)
         if not os.path.exists(test):
           copytree(BOTH, test)
-        p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o))
+        p = Process(target=run_chunk, args=(all_files, lo, hi, lengths, names, test, o, rand))
         procs.append(p)
         outs.append(o)
-    [p.start() for p in procs]
-    # Need to wait for chunks to finish
-    [p.join() for p in procs]
-    with open(output, "w") as f_out:
-      print("File Name: %s ")
-      for o in outs:
-        with open(o, "r") as f_in:
-          for line in f_in:
-            print(line, file=f_out, end="")
-        os.remove(o)
-    return
 
 
 def count_types(nums, lengths):
@@ -85,10 +91,10 @@ def count_types(nums, lengths):
 
     return total
 
-def run_chunk(all_files, lo, hi, lengths, names, test, output):
+def run_chunk(all_files, lo, hi, lengths, names, test, output, rand=None):
 
-    with open(output, 'w') as out:
-        print("Running benchmarks [%s, %s)" % (lo, hi))
+    with open(output, 'a') as out:
+        print("Running benchmarks (%s, %s)" % (lo, hi))
         for files in itertools.islice(itertools.product(*all_files), lo, hi):
             print("Running: %s" % list(files))
             for name, file in zip(names, files):
@@ -96,7 +102,14 @@ def run_chunk(all_files, lo, hi, lengths, names, test, output):
             t = run_1(test)
             nums = [get_name(f) for f in files]
             tag = '-'.join(nums)
-            print('%s   %s   %s' % (tag, count_types(nums, lengths), t), file=out)
+            if rand:
+
+                out.write("%s   %s   %s \n" % (rand[0], count_types(nums, lengths), t))
+            else:
+                print('%s   %s   %s' % (tag, count_types(nums, lengths), t), file=out)
+
+
+
 
 def run_1(test):
     os.system("rm -rf __pycache__")
