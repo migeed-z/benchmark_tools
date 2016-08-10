@@ -260,3 +260,6 @@ def get_rand_bits(rand, parsed):
     if rand:
         n = scan_all_program(parsed)
         return [choice([0,1]) for i in range(sum(n))], n
+
+if __name__ == "__main__":
+  gen_all(sys.argv[1], sys.argv[2], rand=False)
